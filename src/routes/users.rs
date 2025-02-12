@@ -11,6 +11,12 @@ pub mod request {
         pub username: String,
         pub password: String
     }
+
+    #[derive(Deserialize)]
+    pub struct Post {
+        pub username: String,
+        pub password: String
+    }
 }
 
 
@@ -22,6 +28,11 @@ pub mod response {
         pub username: String,
         pub date_created: chrono::NaiveDateTime,
         pub date_updated: chrono::NaiveDateTime
+    }
+
+    #[derive(Serialize)]
+    pub struct Post {
+        pub id: i32
     }
 }
 
@@ -49,6 +60,32 @@ pub async fn get(Query(params): Query<request::Get>) -> Response {
             username: user.username, 
             date_created: user.date_created,
             date_updated: user.date_updated
+        })
+    ).into_response()
+}
+
+
+#[axum::debug_handler]
+pub async fn post(Query(params): Query<request::Post>) -> Response {
+    let Ok(connection) = &mut db::connection::establish() else {
+        return (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "Unable to connect to database"
+        ).into_response();
+    };
+
+    // Check if user exists
+    let Ok(user) = db::queries::users::create_user(connection, params.username, params.password) else {
+        return (
+            StatusCode::INTERNAL_SERVER_ERROR, 
+            "Unable to save user"
+        ).into_response()
+    };
+
+    (
+        StatusCode::OK,
+        Json(response::Post {
+            id: user.user_id
         })
     ).into_response()
 }
