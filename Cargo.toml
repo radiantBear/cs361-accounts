@@ -4,3 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+bcrypt = "0.17.0"
+chrono = "0.4.39"
+diesel = { version = "2.2.7", features = [ "mysql", "chrono" ] }
+dotenvy = "0.15.7"
+mysqlclient-sys = { version = "0.4.2", features = ["bundled"] }
