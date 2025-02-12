@@ -2,13 +2,15 @@ pub mod db;
 pub mod routes;
 
 
-use axum::{ routing::get, Router };
+use axum::{ routing::{get, post}, Router };
 
 
 #[tokio::main]
 async fn main() {
     let app = Router::new()
-        .route("/users", get(routes::users::get));
+        .route("/users", post(routes::users::post))
+        .route("/sessions", post(routes::sessions::post))
+        .route("/sessions/{uuid}", get(routes::sessions::get));
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
     axum::serve(listener, app).await.unwrap();
