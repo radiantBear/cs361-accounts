@@ -5,13 +5,10 @@ use crate::models::User;
 
 
 pub fn establish_connection() -> MysqlConnection {
-    println!("Starting...");
     dotenv().ok();
     
-    println!("Getting database url...");
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     
-    println!("Establishing connection to {}...", database_url);
     MysqlConnection::establish(&database_url)
         .unwrap_or_else(|e| panic!("Error connecting to {}: {:?}", database_url, e))
 }

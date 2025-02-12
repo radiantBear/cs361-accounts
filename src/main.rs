@@ -2,47 +2,51 @@ pub mod db;
 pub mod models;
 pub mod schema;
 
-use std::io::{stdin, stdout, Write};
-use crate::db::*;
-
-fn main() {
-    println!("Establishing connection...");
-    let connection = &mut establish_connection();
-    println!("Connection established...");
-    
-    // Get inputs
-    let (username, password) = get_creds();
-    let username = username.trim();
-    let password = password.trim();
-
-    // Store user
-    let user = create_user(connection, username, password);
-    println!("\nSaved user {} at {}", user.username, user.date_created);
+use axum::{ extract::Query, http::StatusCode, response::{IntoResponse, Response}, routing::get, Json, Router };
+use serde::{Deserialize, Serialize};
 
 
-    // Get inputs
-    let (username, password) = get_creds();
-    let username = username.trim();
-    let password = password.trim();
-
-    // Check if user exists
-    if let Some(user) = get_user(connection, username, password) {
-        println!("Found user {} (ID {})", user.username, user.user_id);
-    }
+#[derive(Deserialize)]
+struct ReqGetUser {
+    username: String,
+    password: String
 }
 
 
-fn get_creds() -> (String, String) {
-    let mut username = String::new();
-    let mut password = String::new();
+#[derive(Serialize)]
+struct RespGetUser {
+    pub username: String,
+    pub date_created: chrono::NaiveDateTime,
+    pub date_updated: chrono::NaiveDateTime
+}
 
-    print!("Username: ");
-    stdout().flush().unwrap();
-    stdin().read_line(&mut username).unwrap();
+#[tokio::main]
+async fn main() {
+    let app = Router::new()
+        .route("/users", get(get_user));
 
-    print!("Password: ");
-    stdout().flush().unwrap();
-    stdin().read_line(&mut password).unwrap();
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
+    axum::serve(listener, app).await.unwrap();
+}
 
-    (username, password)
+#[axum::debug_handler]
+async fn get_user(Query(params): Query<ReqGetUser>) -> Response {
+    let connection = &mut db::establish_connection();
+
+    // Check if user exists
+    if let Some(user) = db::get_user(connection, params.username.as_str(), params.password.as_str()) {
+        (
+            StatusCode::OK,
+            Json(RespGetUser {
+                username: user.username, 
+                date_created: user.date_created,
+                date_updated: user.date_updated
+            })
+        ).into_response()
+    } else {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR, 
+            "Could not get user"
+        ).into_response()
+    }
 }
