@@ -1,8 +1,10 @@
 use diesel::prelude::*;
 
+use super::schema;
+
 
 #[derive(Queryable, Selectable, Identifiable)]
-#[diesel(table_name = super::schema::users)]
+#[diesel(table_name = schema::users)]
 #[diesel(primary_key(user_id))]
 #[diesel(check_for_backend(diesel::mysql::Mysql))]
 pub struct User {
@@ -16,7 +18,7 @@ pub struct User {
 #[derive(Queryable, Selectable, Identifiable, Associations)]
 #[diesel(primary_key(session_id))]
 #[diesel(belongs_to(User))]
-#[diesel(table_name = super::schema::sessions)]
+#[diesel(table_name = schema::sessions)]
 #[diesel(check_for_backend(diesel::mysql::Mysql))]
 pub struct Session {
     pub session_id: i32,
@@ -28,7 +30,7 @@ pub struct Session {
 
 
 #[derive(Insertable)]
-#[diesel(table_name = super::schema::users)]
+#[diesel(table_name = schema::users)]
 #[diesel(check_for_backend(diesel::mysql::Mysql))]
 pub struct NewUser<'a> {
     pub username: &'a str,
@@ -36,7 +38,7 @@ pub struct NewUser<'a> {
 }
 
 #[derive(Insertable)]
-#[diesel(table_name = super::schema::sessions)]
+#[diesel(table_name = schema::sessions)]
 #[diesel(check_for_backend(diesel::mysql::Mysql))]
 pub struct NewSession {
     pub uuid: String,
