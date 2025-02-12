@@ -1,6 +1,4 @@
 pub mod db;
-pub mod models;
-pub mod schema;
 
 use axum::{ extract::Query, http::StatusCode, response::{IntoResponse, Response}, routing::get, Json, Router };
 use serde::{Deserialize, Serialize};
@@ -31,7 +29,7 @@ async fn main() {
 
 #[axum::debug_handler]
 async fn get_user(Query(params): Query<ReqGetUser>) -> Response {
-    let Ok(connection) = &mut db::establish_connection() else {
+    let Ok(connection) = &mut db::connection::establish() else {
         return (
             StatusCode::INTERNAL_SERVER_ERROR,
             "Unable to connect to database"
@@ -39,7 +37,7 @@ async fn get_user(Query(params): Query<ReqGetUser>) -> Response {
     };
 
     // Check if user exists
-    let Ok(user) = db::get_user(connection, params.username.as_str(), params.password.as_str()) else {
+    let Ok(user) = db::queries::users::get_user(connection, params.username.as_str(), params.password.as_str()) else {
         return (
             StatusCode::NOT_FOUND, 
             "Could not get user"
