@@ -1,25 +1,30 @@
 use bcrypt::{DEFAULT_COST, hash, verify};
 use diesel::prelude::*;
 use super::super::{
-    models::{NewUser, User},
+    models::{NewUser, Session, User},
     schema::{sessions, users},
     types::Error
 };
 
 
-pub fn create_user(conn: &mut MysqlConnection, user: String, password: String) -> Result<(), Error> {
+pub fn create_user(conn: &mut MysqlConnection, user: String, password: String) -> Result<User, Error> {
     let password = hash(password, DEFAULT_COST)
         .expect("Failed to hash password");
     let password = password.as_bytes();
 
     let new_user = NewUser { username: user, password };
     
-    diesel::insert_into(users::table)
-        .values(&new_user)
-        .execute(conn)
-        .map_err(Error::DieselError)?;
-    
-    Ok(())
+    conn.transaction(|conn| {
+        diesel::insert_into(users::table)
+            .values(&new_user)
+            .execute(conn)?;
+
+        users::table
+            .order(users::user_id.desc())
+            .select(User::as_select())
+            .first(conn)
+    })
+    .map_err(Error::DieselError)
 }
 
 
@@ -43,11 +48,11 @@ pub fn get_user(conn: &mut MysqlConnection, username: String, password: String) 
 }
 
 
-pub fn get_user_from_session(conn: &mut MysqlConnection, uuid: &str) -> Result<User, Error> {
+pub fn get_user_from_session(conn: &mut MysqlConnection, uuid: String) -> Result<(User, Session), Error> {
     sessions::table
         .inner_join(users::table)
         .filter(sessions::uuid.eq(uuid))
-        .select(User::as_select())
+        .select((User::as_select(), Session::as_select()))
         .first(conn)
         .map_err(Error::DieselError)
 }
