@@ -33,7 +33,7 @@ pub struct Session {
 #[diesel(table_name = schema::users)]
 #[diesel(check_for_backend(diesel::mysql::Mysql))]
 pub struct NewUser<'a> {
-    pub username: &'a str,
+    pub username: String,
     pub password: &'a [u8]
 }
 

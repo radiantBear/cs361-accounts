@@ -7,7 +7,7 @@ use super::super::{
 };
 
 
-pub fn create_user(conn: &mut MysqlConnection, user: &str, password: &str) -> Result<(), Error> {
+pub fn create_user(conn: &mut MysqlConnection, user: String, password: String) -> Result<(), Error> {
     let password = hash(password, DEFAULT_COST)
         .expect("Failed to hash password");
     let password = password.as_bytes();
