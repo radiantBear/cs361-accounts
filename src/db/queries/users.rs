@@ -23,7 +23,7 @@ pub fn create_user(conn: &mut MysqlConnection, user: &str, password: &str) -> Re
 }
 
 
-pub fn get_user(conn: &mut MysqlConnection, username: &str, password: &str) -> Result<User, Error> {
+pub fn get_user(conn: &mut MysqlConnection, username: String, password: String) -> Result<User, Error> {
     let user = users::table
         .filter(users::username.eq(username))
         .first::<User>(conn)
