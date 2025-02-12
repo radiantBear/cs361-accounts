@@ -1,8 +1,9 @@
 use diesel::prelude::*;
 
 
-#[derive(Queryable, Selectable)]
+#[derive(Queryable, Selectable, Identifiable)]
 #[diesel(table_name = crate::schema::users)]
+#[diesel(primary_key(user_id))]
 #[diesel(check_for_backend(diesel::mysql::Mysql))]
 pub struct User {
     pub user_id: i32,
@@ -12,16 +13,9 @@ pub struct User {
     pub date_updated: chrono::NaiveDateTime
 }
 
-#[derive(Insertable)]
-#[diesel(table_name = crate::schema::users)]
-#[diesel(check_for_backend(diesel::mysql::Mysql))]
-pub struct NewUser<'a> {
-    pub username: &'a str,
-    pub password: &'a [u8]
-}
-
-
-#[derive(Queryable, Selectable)]
+#[derive(Queryable, Selectable, Identifiable, Associations)]
+#[diesel(primary_key(session_id))]
+#[diesel(belongs_to(User))]
 #[diesel(table_name = crate::schema::sessions)]
 #[diesel(check_for_backend(diesel::mysql::Mysql))]
 pub struct Session {
@@ -30,6 +24,15 @@ pub struct Session {
     pub user_id: i32,
     pub date_created: chrono::NaiveDateTime,
     pub date_expires: chrono::NaiveDateTime
+}
+
+
+#[derive(Insertable)]
+#[diesel(table_name = crate::schema::users)]
+#[diesel(check_for_backend(diesel::mysql::Mysql))]
+pub struct NewUser<'a> {
+    pub username: &'a str,
+    pub password: &'a [u8]
 }
 
 #[derive(Insertable)]

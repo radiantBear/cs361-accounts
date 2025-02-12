@@ -1,20 +1,27 @@
 use std::env;
 use diesel::prelude::*;
+use diesel::result::Error as DieselError;
 use dotenvy::dotenv;
-use crate::models::User;
+use rand::{distr::Alphanumeric, Rng};
+use crate::models::{User, Session};
 
 
-pub fn establish_connection() -> MysqlConnection {
+pub enum Error {
+    DieselError(DieselError),
+    CustomError(String)
+}
+
+
+pub fn establish_connection() -> Result<MysqlConnection, ConnectionError> {
     dotenv().ok();
     
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     
     MysqlConnection::establish(&database_url)
-        .unwrap_or_else(|e| panic!("Error connecting to {}: {:?}", database_url, e))
 }
 
 
-pub fn create_user(conn: &mut MysqlConnection, user: &str, password: &str) -> User {
+pub fn create_user(conn: &mut MysqlConnection, user: &str, password: &str) -> Result<(), Error> {
     use crate::schema::users;
     use crate::models::NewUser;
     use bcrypt::{DEFAULT_COST, hash};
@@ -26,29 +33,82 @@ pub fn create_user(conn: &mut MysqlConnection, user: &str, password: &str) -> Us
 
     let new_user = NewUser { username: user, password };
 
-    conn.transaction(|conn| {
-        diesel::insert_into(users::table)
-            .values(&new_user)
-            .execute(conn)?;
-
-        users::table
-            .select(User::as_select())
-            .first(conn)
-    })
-    .expect("Error saving user")
+    
+    diesel::insert_into(users::table)
+        .values(&new_user)
+        .execute(conn)
+        .map_err(Error::DieselError)?;
+    
+    Ok(())
 }
 
-pub fn get_user(conn: &mut MysqlConnection, username: &str, password: &str) -> Option<User> {
-    use crate::schema::users::dsl::{users, username as db_username};
+
+pub fn get_user(conn: &mut MysqlConnection, username: &str, password: &str) -> Result<User, Error> {
+    use crate::schema::users;
     use bcrypt::verify;
 
-    let user = users
-        .filter(db_username.eq(username))
+    let user = users::table
+        .filter(users::username.eq(username))
         .first::<User>(conn)
-        .expect("Error fetching user");
+        .map_err(Error::DieselError)?;
     
-    if verify(password, std::str::from_utf8(&user.password).unwrap()).expect("Error checking passwords") {
-        return Some(user);
+    let hashed_password = std::str::from_utf8(&user.password)
+        .map_err(|_| Error::CustomError(String::from("Hashed string included invalid UTF-8 characters")))?;
+
+    let hashes_match = verify(password, hashed_password)
+        .map_err(|_| Error::CustomError(String::from("Error checking passwords")))?;
+    
+    if hashes_match {
+        Ok(user)
+    } else {
+        Err(Error::CustomError(String::from("Incorrect password")))
     }
-    None
+}
+
+
+pub fn create_session(conn: &mut MysqlConnection, user_id: i32) -> Result<(), Error> {
+    use crate::schema::sessions;
+    use crate::models::NewSession;
+
+    let uuid: String = rand::rng()
+        .sample_iter(&Alphanumeric)
+        .take(128)
+        .map(char::from)
+        .collect();
+
+    let new_session = NewSession { uuid, user_id };
+
+    diesel::insert_into(sessions::table)
+        .values(&new_session)
+        .execute(conn)
+        .map_err(Error::DieselError)?;
+
+
+    Ok(())
+}
+
+
+pub fn get_session(conn: &mut MysqlConnection, uuid: &str) -> Result<Session, Error> {
+    use crate::schema::sessions;
+
+    Ok(
+        sessions::table
+            .filter(sessions::uuid.eq(uuid))
+            .first::<Session>(conn)
+            .map_err(Error::DieselError)?
+    )
+}
+
+
+pub fn get_user_from_session(conn: &mut MysqlConnection, uuid: &str) -> Result<User, Error> {
+    use crate::schema::{sessions, users};
+
+    Ok(
+        sessions::table
+            .inner_join(users::table)
+            .filter(sessions::uuid.eq(uuid))
+            .select(User::as_select())
+            .first(conn)
+            .map_err(Error::DieselError)?
+    )
 }

@@ -31,22 +31,27 @@ async fn main() {
 
 #[axum::debug_handler]
 async fn get_user(Query(params): Query<ReqGetUser>) -> Response {
-    let connection = &mut db::establish_connection();
+    let Ok(connection) = &mut db::establish_connection() else {
+        return (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "Unable to connect to database"
+        ).into_response();
+    };
 
     // Check if user exists
-    if let Some(user) = db::get_user(connection, params.username.as_str(), params.password.as_str()) {
-        (
-            StatusCode::OK,
-            Json(RespGetUser {
-                username: user.username, 
-                date_created: user.date_created,
-                date_updated: user.date_updated
-            })
-        ).into_response()
-    } else {
-        (
-            StatusCode::INTERNAL_SERVER_ERROR, 
+    let Ok(user) = db::get_user(connection, params.username.as_str(), params.password.as_str()) else {
+        return (
+            StatusCode::NOT_FOUND, 
             "Could not get user"
         ).into_response()
-    }
+    };
+
+    (
+        StatusCode::OK,
+        Json(RespGetUser {
+            username: user.username, 
+            date_created: user.date_created,
+            date_updated: user.date_updated
+        })
+    ).into_response()
 }
