@@ -25,7 +25,7 @@ pub fn app() -> Router {
         .route("/sessions/{uuid}",     get(sessions::get))
         
         .route("/csrf_tokens",         post(csrf_tokens::post))
-        .route("/csrf_tokens/{token}", get(csrf_tokens::get))
+        .route("/csrf_tokens/{token}", delete(csrf_tokens::delete))
         
         .layer(middleware::from_fn(validate_api_key))
 }

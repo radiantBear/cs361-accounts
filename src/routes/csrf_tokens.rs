@@ -23,7 +23,32 @@ pub mod response {
 }
 
 
-pub async fn get(Path(params): Path<request::Get>) -> Response {
+pub async fn post() -> Response {
+    let Ok(connection) = &mut db::connection::establish() else {
+        return (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "Unable to connect to database"
+        ).into_response();
+    };
+
+    // Check if user exists
+    let Ok(csrf_token) = db::queries::csrf_tokens::create_csrf_token(connection) else {
+        return (
+            StatusCode::INTERNAL_SERVER_ERROR, 
+            "Unable to create CSRF token"
+        ).into_response()
+    };
+
+    (
+        StatusCode::OK,
+        Json(response::Post {
+            token: csrf_token.uuid
+        })
+    ).into_response()
+}
+
+
+pub async fn delete(Path(params): Path<request::Get>) -> Response {
     let Ok(connection) = &mut db::connection::establish() else {
         return (
             StatusCode::INTERNAL_SERVER_ERROR,
@@ -48,29 +73,4 @@ pub async fn get(Path(params): Path<request::Get>) -> Response {
             "Invalid CSRF token"
         ).into_response()
     }
-}
-
-
-pub async fn post() -> Response {
-    let Ok(connection) = &mut db::connection::establish() else {
-        return (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            "Unable to connect to database"
-        ).into_response();
-    };
-
-    // Check if user exists
-    let Ok(csrf_token) = db::queries::csrf_tokens::create_csrf_token(connection) else {
-        return (
-            StatusCode::INTERNAL_SERVER_ERROR, 
-            "Unable to create CSRF token"
-        ).into_response()
-    };
-
-    (
-        StatusCode::OK,
-        Json(response::Post {
-            token: csrf_token.uuid
-        })
-    ).into_response()
 }
