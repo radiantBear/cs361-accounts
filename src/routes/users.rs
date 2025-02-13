@@ -1,4 +1,5 @@
 use axum::{ extract::Path, http::{HeaderMap, StatusCode}, response::{IntoResponse, Response}, Json };
+use diesel::result::{DatabaseErrorKind, Error as DieselError};
 
 use crate::db;
 
@@ -66,19 +67,14 @@ pub async fn post(headers: HeaderMap, Json(params): Json<request::Post>) -> Resp
     };
 
     // Check if user exists
-    let Ok(user) = db::queries::users::create_user(connection, params.username, params.password) else {
-        return (
-            StatusCode::INTERNAL_SERVER_ERROR, 
-            "Unable to save user"
-        ).into_response()
-    };
-
-    (
-        StatusCode::OK,
-        Json(response::Post {
-            id: user.user_id
-        })
-    ).into_response()
+    match db::queries::users::create_user(connection, params.username, params.password) {
+        Ok(user) => (StatusCode::OK, Json(response::Post { id: user.user_id })).into_response(),
+        Err(e) => if let db::types::Error::DieselError(DieselError::DatabaseError(DatabaseErrorKind::UniqueViolation, _)) = e {
+                ( StatusCode::CONFLICT, "Username already in use" ).into_response()
+            } else {
+                ( StatusCode::INTERNAL_SERVER_ERROR, "Unable to save user" ).into_response()
+            }
+    }
 }
 
 
