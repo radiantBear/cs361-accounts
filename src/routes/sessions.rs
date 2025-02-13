@@ -15,7 +15,8 @@ pub mod request {
     #[derive(Deserialize)]
     pub struct Post {
         pub username: String,
-        pub password: String
+        pub password: String,
+        pub csrf_token: String
     }
 }
 
@@ -74,6 +75,14 @@ pub async fn post(Json(params): Json<request::Post>) -> Response {
         return (
             StatusCode::INTERNAL_SERVER_ERROR,
             "Unable to connect to database"
+        ).into_response();
+    };
+
+    // Check that CSRF token is valid
+    let Ok(true) = db::queries::csrf_tokens::validate_csrf_token(connection, params.csrf_token) else {
+        return (
+            StatusCode::FORBIDDEN,
+            "Invalid CSRF token"
         ).into_response();
     };
 
