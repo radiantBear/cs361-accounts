@@ -23,7 +23,6 @@ pub mod response {
 }
 
 
-#[axum::debug_handler]
 pub async fn get(Path(params): Path<request::Get>) -> Response {
     let Ok(connection) = &mut db::connection::establish() else {
         return (
@@ -52,7 +51,6 @@ pub async fn get(Path(params): Path<request::Get>) -> Response {
 }
 
 
-#[axum::debug_handler]
 pub async fn post() -> Response {
     let Ok(connection) = &mut db::connection::establish() else {
         return (

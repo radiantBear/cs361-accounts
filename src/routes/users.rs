@@ -111,7 +111,6 @@ pub async fn post(headers: HeaderMap, Json(params): Json<request::Post>) -> Resp
 }
 
 
-#[axum::debug_handler]
 pub async fn delete(Path(user_id): Path<i32>, headers: HeaderMap) -> Response {
     let csrf_token = headers
         .get("x-csrf-token")

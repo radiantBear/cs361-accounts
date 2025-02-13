@@ -35,7 +35,6 @@ pub mod response {
 }
 
 
-#[axum::debug_handler]
 pub async fn get(Path(params): Path<request::Get>) -> Response {
     let Ok(connection) = &mut db::connection::establish() else {
         return (
@@ -68,7 +67,6 @@ pub async fn get(Path(params): Path<request::Get>) -> Response {
 }
 
 
-#[axum::debug_handler]
 pub async fn post(headers: HeaderMap, Json(params): Json<request::Post>) -> Response {
     let csrf_token = headers
         .get("x-csrf-token")

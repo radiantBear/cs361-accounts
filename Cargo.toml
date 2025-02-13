@@ -1,10 +1,10 @@
 [package]
-name = "cs361-accounts"
+name = "cs361_accounts"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-axum = { version = "0.8.1", features = ["macros"] }
+axum = "0.8.1"
 bcrypt = "0.17.0"
 chrono = { version = "0.4.39", features = ["serde"] }
 diesel = { version = "2.2.7", features = ["mysql", "chrono"] }
