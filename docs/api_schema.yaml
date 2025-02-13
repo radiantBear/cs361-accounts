@@ -1,0 +1,255 @@
+openapi: 3.0.3
+info:
+  title: Authentication Microservice
+  description: |-
+    Add secure authentication to your project without any new dependencies! This microservice runs as a separate process from your project and allows you to communicate it via an HTTP API. All API endpoints are secured with an API key to prevent attackers from interacting with this service.
+    
+    Some useful links:
+    - [CSRF token purpose](https://stackoverflow.com/a/33829607)
+    - [CSRF prevention](https://developer.mozilla.org/en-US/docs/Web/Security/Practical_implementation_guides/CSRF_prevention)
+  contact:
+    email: 85893453+radiantBear@users.noreply.github.com
+  version: 1.0.0
+externalDocs:
+  description: Deploy the microservice
+  url: https://github.com/radiantBear/cs361-accounts
+servers:
+  - url: https://localhost:3000/
+tags:
+  - name: users
+    description: User IDs, usernames, and passwords
+  - name: sessions
+    description: Session tokens
+  - name: csrf_tokens
+    description: Cross-Site Request Forgery prevention tokens
+paths:
+  /users:
+    post:
+      tags:
+        - users
+      summary: Create a new user
+      parameters:
+        - name: X-CSRF-Token
+          in: header
+          description: Prevents unauthorized actions by verifying request origin and user intent.
+          schema: 
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+        required: true
+      responses:
+        '200':
+          description: User created. ID uniquely identifies the user and should be used to help other microservices correlate their services with the user. The ID **should not** be exposed in the frontend.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: 
+                    type: integer
+        '400':
+          description: Bad request (likely missing required headers)
+        '401':
+          description: Invalid API key
+        '403':
+          description: Invalid CSRF token
+        '409':
+          description: Username already taken
+        '422':
+          description: Invalid request body
+        '500':
+          description: Internal server error
+      security:
+        - api_key: []
+  
+  /users/{user_id}:
+    delete:
+      tags:
+        - users
+      summary: Delete user and all of their sessions
+      parameters:
+        - name: user_id
+          in: path
+          description: Tags to filter by
+          schema:
+            type: string
+          required: true
+        - name: X-CSRF-Token
+          in: header
+          description: Prevents unauthorized actions by verifying request origin and user intent.
+          schema: 
+            type: string
+          required: true
+      responses:
+        '200':
+          description: User deleted
+        '400':
+          description: Bad request (likely missing required headers)
+        '401':
+          description: Invalid API key
+        '403':
+          description: Invalid CSRF token
+        '422':
+          description: Invalid request body
+        '500':
+          description: Internal server error
+      security:
+        - api_key: []
+
+  /sessions:
+    post:
+      tags:
+        - sessions
+      summary: Start a new user session (i.e. log in)
+      description: Sessions expire after 8 hours
+      parameters:
+        - name: X-CSRF-Token
+          in: header
+          description: Prevents unauthorized actions by verifying request origin and user intent.
+          schema: 
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+        required: true
+      responses:
+        '200':
+          description: Session created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  uuid: 
+                    type: string
+        '400':
+          description: Bad request (likely missing required headers)
+        '401':
+          description: Invalid API key
+        '403':
+          description: Invalid CSRF token
+        '422':
+          description: Invalid request body
+        '500':
+          description: Internal server error
+      security:
+        - api_key: []
+        
+  /sessions/{uuid}:
+    get:
+      tags:
+        - sessions
+      summary: Returns the corresponding user ID if the session is valid
+      parameters:
+        - name: uuid
+          in: path
+          description: ID of session to validate
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Session valid. ID returned matches the ID returned when the user was created.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: 
+                    type: integer
+        '400':
+          description: Bad request (likely missing required headers)
+        '401':
+          description: Invalid API key
+        '404':
+          description: Session ID not found or expired
+        '422':
+          description: Invalid request body
+        '500':
+          description: Internal server error
+      security:
+        - api_key: []
+
+  /csrf_tokens:
+    post:
+      tags:
+        - csrf_tokens
+      summary: Create a CSRF token
+      responses:
+        '200':
+          description: CSRF token generated. Embed it in your webpage and validate it when receiving requests to verify that users are intentionally generating the request.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token: 
+                    type: string
+        '400':
+          description: Bad request (likely missing required headers)
+        '401':
+          description: Invalid API key
+        '500':
+          description: Internal server error
+      security:
+        - api_key: []
+
+
+  /csrf_tokens/{token}:
+    delete:
+      tags:
+        - csrf_tokens
+      summary: Validate a CSRF token
+      description: |-
+        CSRF tokens are single-use objects. The token will be revoked once it has been validated, either explicitly (via this endpoint) or implicitly (by passing it to another endpoint that requires one in requests). A valid token is required to create or delete users and start a session.
+      
+        For any sensitive actions the user can perform, you should embed a CSRF token in the webpage that will be submitted with the action. You should then validate it with this endpoint **before processing the action** to ensure the user is intentionally performing this action. This decreases the risk of cross-site request forgery attacks. You **should not** expose an API endpoint to get a CSRF token: the attacker could use this to add a CSRF token to their malicious request and bypass this defense.
+      parameters:
+        - name: token
+          in: path
+          schema: 
+            type: string
+          required: true
+      responses:
+        '200':
+          description: CSRF token was valid and has been revoked
+        '400':
+          description: Bad request (likely missing required headers)
+        '401':
+          description: Invalid API key
+        '404':
+          description: CSRF token was invalid
+        '500':
+          description: Internal server error
+      security:
+        - api_key: []
+
+components:
+  securitySchemes:
+    api_key:
+      description: |-
+        Validates that the request is authentic and coming from a valid microservice. **Should not** be exposed to the user or included anywhere in the frontend. 
+        
+        If you don't have a key yet, just start the server using `cargo build` and executing the binary. This will return a secure, random API key for you to use.
+        
+        Failure to keep the key private would allow attackers to interact with this API as if they are an authenticated microservice. For example, this would allow them to create users, start sessions, and delete users.
+      in: header
+      name: X-API-Key
+      type: apiKey
