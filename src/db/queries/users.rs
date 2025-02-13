@@ -56,3 +56,13 @@ pub fn get_user_from_session(conn: &mut MysqlConnection, uuid: String) -> Result
         .first(conn)
         .map_err(Error::DieselError)
 }
+
+
+pub fn delete_user(conn: &mut MysqlConnection, user_id: i32) -> Result<(), Error> {
+    diesel::delete(users::table)
+        .filter(users::user_id.eq(user_id))
+        .execute(conn)
+        .map_err(Error::DieselError)?;
+    
+    Ok(())
+}
