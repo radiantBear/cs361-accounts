@@ -1,4 +1,4 @@
-use axum::{ extract::{Path, Query}, http::{HeaderMap, StatusCode}, response::{IntoResponse, Response}, Json };
+use axum::{ extract::Path, http::{HeaderMap, StatusCode}, response::{IntoResponse, Response}, Json };
 
 use crate::db;
 
@@ -37,35 +37,6 @@ pub mod response {
 }
 
 
-#[axum::debug_handler]
-pub async fn get(Query(params): Query<request::Get>) -> Response {
-    let Ok(connection) = &mut db::connection::establish() else {
-        return (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            "Unable to connect to database"
-        ).into_response();
-    };
-
-    // Check if user exists
-    let Ok(user) = db::queries::users::get_user(connection, params.username, params.password) else {
-        return (
-            StatusCode::NOT_FOUND, 
-            "Could not get user"
-        ).into_response()
-    };
-
-    (
-        StatusCode::OK,
-        Json(response::Get {
-            username: user.username, 
-            date_created: user.date_created,
-            date_updated: user.date_updated
-        })
-    ).into_response()
-}
-
-
-#[axum::debug_handler]
 pub async fn post(headers: HeaderMap, Json(params): Json<request::Post>) -> Response {
     let csrf_token = headers
         .get("x-csrf-token")
