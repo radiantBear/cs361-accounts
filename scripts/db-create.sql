@@ -16,7 +16,7 @@ CREATE TABLE sessions (
     `date_created` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `date_expires` DATETIME AS (`date_created` + INTERVAL 8 HOUR) STORED,
 
-    FOREIGN KEY (`user_id`) REFERENCES `users`(`user_id`)
+    FOREIGN KEY (`user_id`) REFERENCES `users`(`user_id`) ON DELETE CASCADE
 );
 
 CREATE TABLE csrf_tokens (
