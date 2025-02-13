@@ -1,5 +1,5 @@
 use diesel::prelude::*;
-use rand::{distr::Alphanumeric, Rng};
+use crate::utils::rand;
 use super::super::{
     models::{NewSession, Session},
     schema::sessions,
@@ -8,11 +8,7 @@ use super::super::{
 
 
 pub fn create_session(conn: &mut MysqlConnection, user_id: i32) -> Result<Session, Error> {
-    let uuid: String = rand::rng()
-        .sample_iter(&Alphanumeric)
-        .take(128)
-        .map(char::from)
-        .collect();
+    let uuid = rand::generate_alphanumeric(128);
 
     let new_session = NewSession { uuid, user_id };
 

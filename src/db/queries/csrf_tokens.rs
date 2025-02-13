@@ -1,5 +1,5 @@
 use diesel::{prelude::*, result::Error as DieselError};
-use rand::{distr::Alphanumeric, Rng};
+use crate::utils::rand;
 use super::super::{
     models::{NewCsrfToken, CsrfToken},
     schema::csrf_tokens,
@@ -8,11 +8,7 @@ use super::super::{
 
 
 pub fn create_csrf_token(conn: &mut MysqlConnection) -> Result<CsrfToken, Error> {
-    let uuid: String = rand::rng()
-        .sample_iter(&Alphanumeric)
-        .take(128)
-        .map(char::from)
-        .collect();
+    let uuid = rand::generate_alphanumeric(128);
 
     let new_session = NewCsrfToken { uuid };
 
