@@ -247,7 +247,7 @@ components:
       description: |-
         Validates that the request is authentic and coming from a valid microservice. **Should not** be exposed to the user or included anywhere in the frontend. 
         
-        If you don't have a key yet, just start the server using `cargo build` and executing the binary. This will return a secure, random API key for you to use.
+        If you don't have a key yet, just start the server using `cargo build --release` and executing the binary. This will return a secure, random API key for you to use.
         
         Failure to keep the key private would allow attackers to interact with this API as if they are an authenticated microservice. For example, this would allow them to create users, start sessions, and delete users.
       in: header
