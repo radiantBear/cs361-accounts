@@ -1,4 +1,4 @@
-use axum::{ extract::Path, http::{HeaderMap, StatusCode}, Json, response::{IntoResponse, Response} };
+use axum::{ extract::Path, http::StatusCode, Json, response::{IntoResponse, Response} };
 use chrono::Utc;
 
 use crate::db;
@@ -67,31 +67,11 @@ pub async fn get(Path(params): Path<request::Get>) -> Response {
 }
 
 
-pub async fn post(headers: HeaderMap, Json(params): Json<request::Post>) -> Response {
-    let csrf_token = headers
-        .get("x-csrf-token")
-        .and_then(|header| header.to_str().ok())
-        .map(|token| token.to_string());
-
-    let Some(csrf_token) = csrf_token else {
-        return (
-            StatusCode::BAD_REQUEST, 
-            "Unable to parse CSRF token"
-        ).into_response();
-    };
-
-    let Ok(connection) = &mut db::connection::establish() else {
+pub async fn post(Json(params): Json<request::Post>) -> Response {
+        let Ok(connection) = &mut db::connection::establish() else {
         return (
             StatusCode::INTERNAL_SERVER_ERROR,
             "Unable to connect to database"
-        ).into_response();
-    };
-
-    // Check that CSRF token is valid
-    let Ok(true) = db::queries::csrf_tokens::validate_csrf_token(connection, csrf_token) else {
-        return (
-            StatusCode::FORBIDDEN,
-            "Invalid CSRF token"
         ).into_response();
     };
 
