@@ -1,12 +1,10 @@
-use std::env;
 use diesel::prelude::*;
-use dotenvy::dotenv;
+
+use crate::config::CONFIG;
 
 
-pub fn establish() -> Result<MysqlConnection, ConnectionError> {
-    dotenv().ok();
-    
-    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    
-    MysqlConnection::establish(&database_url)
+pub fn establish() -> Result<MysqlConnection, ConnectionError> {    
+    MysqlConnection::establish(
+        CONFIG.get().unwrap().database_url.as_str()
+    )
 }
