@@ -53,7 +53,7 @@ pub async fn get(Path(params): Path<request::Get>) -> Response {
 
     if Utc::now().naive_utc() > session.date_expires {
         return (
-            StatusCode::UNAUTHORIZED, 
+            StatusCode::NOT_FOUND, 
             "Session expired"
         ).into_response()
     }

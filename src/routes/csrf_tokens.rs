@@ -34,8 +34,8 @@ pub async fn get(Path(params): Path<request::Get>) -> Response {
     // Check if user exists
     let Ok(valid_token) = db::queries::csrf_tokens::validate_csrf_token(connection, params.token) else {
         return (
-            StatusCode::NOT_FOUND, 
-            "Unable to get CSRF token"
+            StatusCode::INTERNAL_SERVER_ERROR, 
+            "Unable to check CSRF token"
         ).into_response()
     };
 
@@ -62,7 +62,7 @@ pub async fn post() -> Response {
     // Check if user exists
     let Ok(csrf_token) = db::queries::csrf_tokens::create_csrf_token(connection) else {
         return (
-            StatusCode::NOT_FOUND, 
+            StatusCode::INTERNAL_SERVER_ERROR, 
             "Unable to create CSRF token"
         ).into_response()
     };
