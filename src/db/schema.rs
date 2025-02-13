@@ -18,5 +18,13 @@ diesel::table! {
     }
 }
 
+diesel::table! {
+    csrf_tokens (csrf_token_id) {
+        csrf_token_id -> Integer,
+        uuid -> Char,
+        date_created -> Datetime
+    }
+}
+
 diesel::joinable!(sessions -> users (user_id));
 diesel::allow_tables_to_appear_in_same_query!(sessions, users);

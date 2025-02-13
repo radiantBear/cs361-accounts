@@ -28,6 +28,16 @@ pub struct Session {
     pub date_expires: chrono::NaiveDateTime
 }
 
+#[derive(Queryable, Selectable, Identifiable)]
+#[diesel(primary_key(csrf_token_id))]
+#[diesel(table_name = schema::csrf_tokens)]
+#[diesel(check_for_backend(diesel::mysql::Mysql))]
+pub struct CsrfToken {
+    pub csrf_token_id: i32,
+    pub uuid: String,
+    pub date_created: chrono::NaiveDateTime
+}
+
 
 #[derive(Insertable)]
 #[diesel(table_name = schema::users)]
@@ -43,4 +53,11 @@ pub struct NewUser<'a> {
 pub struct NewSession {
     pub uuid: String,
     pub user_id: i32
+}
+
+#[derive(Insertable)]
+#[diesel(table_name = schema::csrf_tokens)]
+#[diesel(check_for_backend(diesel::mysql::Mysql))]
+pub struct NewCsrfToken {
+    pub uuid: String
 }
