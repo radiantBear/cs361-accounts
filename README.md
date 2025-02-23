@@ -28,7 +28,9 @@ DATABASE_URL={database_url}
     authenticate to the microservice. If you start the microservice without one defined, 
         it will generate one that you can add to `./env`
 - `{database_url}` should be a connection string of the form: 
-    `mysql://{username}:{password}@{hostname}:{port}/accounts`
+    ```
+    mysql://{username}:{password}@{hostname}:{port}/accounts
+    ```
     - `{username}` and `{password}` should be replaced with the username and password you 
         chose when setting up the database
     - `{hostname}` is the domain name or IP address where the database server is hosted. 
