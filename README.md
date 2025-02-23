@@ -1,8 +1,5 @@
 # CS 361 Microservice: Account Tracking
 
-## Author
-- Nate Baird
-
 ## Getting Started
 ### Prerequisites
 - **[Rust](https://www.rust-lang.org/tools/install):** Compiling/running the microservice
