@@ -15,9 +15,9 @@ pub fn app() -> Router {
         .route("/users/{user_id}", delete(users::delete))
         
         .route("/sessions", post(sessions::post))
-        .route("/sessions/{uuid}",     get(sessions::get))
+        .route("/sessions/{uuid}", get(sessions::get))
         
-        .route("/csrf_tokens",         post(csrf_tokens::get))
+        .route("/csrf_tokens", get(csrf_tokens::get))
 
         .route("/nonces", post(nonces::post))
         .route("/nonces/{nonce}", delete(nonces::delete))
