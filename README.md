@@ -43,3 +43,7 @@ DATABASE_URL={database_url}
 ## Usage
 All API endpoints are [documented](/docs/api_schema.yaml) using the OpenAPI v3.0 format. 
 This format can be pretty-printed using [Swagger](https://editor.swagger.io).
+
+### Example Use Sequence
+![Sequence diagram showing account creation and session validation](/docs/example_sequence.png)
+
