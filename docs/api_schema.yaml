@@ -208,7 +208,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  token: 
+                  nonce: 
                     type: string
         '400':
           description: Bad request (likely missing required headers)
