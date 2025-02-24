@@ -4,6 +4,8 @@ use crate::config::CONFIG;
 
 
 pub async fn validate_api_key(headers: HeaderMap, req: Request, next: Next) -> Result<Response, StatusCode> {    
+    println!("Handling {}\t{}", req.method(), req.uri().path());
+    
     let api_key = headers
         .get("x-api-key")
         .and_then(|header| header.to_str().ok())
