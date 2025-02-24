@@ -47,6 +47,42 @@ DATABASE_URL={database_url}
 All API endpoints are [documented](/docs/api_schema.yaml) using the OpenAPI v3.0 format. 
 This format can be pretty-printed using [Swagger](https://editor.swagger.io).
 
+### Requests
+Every endpoint authenticates requests by checking for an `X-API-Key` header whose value 
+matches the API key added to this project's configuration. Failing to include this header 
+will cause the request to be rejected. Requests with a body must encode the body using the
+JSON format and include a `Content-Type: application/json` header.
+
+#### Example: Account Creation
+```py
+response = requests.post(
+    f'{BASE_URL}/users',
+    headers = {
+        'Content-Type': 'application/json',
+        'X-API-Key': os.environ['API_KEY']
+    },
+    json = {
+        'username': 'test',
+        'password': 'password'
+    }
+)
+```
+
+### Responses
+Every endpoint will provide a basic status with the HTTP status code. In addition, 
+responses for successful requests will include a JSON-encoded response body. Responses for
+failed requests will include a plain-text body explaining what error occurred.
+
+#### Example: Retrieving Account ID
+```py
+if response.status_code == 409:
+    print(response.text)
+elif response.status_code == 200:
+    result = response.json()
+    print('Account successfully created!')
+    print(f'The user can be consistently identified with the ID {result['id']} in other microservices')
+```
+
 ### Example Use Sequence
 ![Sequence diagram showing account creation and session validation](/docs/example_sequence.png)
 
