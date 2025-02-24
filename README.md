@@ -3,6 +3,8 @@
 ## Getting Started
 ### Prerequisites
 - **[Rust](https://www.rust-lang.org/tools/install):** Compiling/running the microservice
+- **[MySQL](https://www.mysql.com/downloads/):** Microservice dependency for connecting to
+    a MySQL database
 - **[Docker](https://docs.docker.com/engine/install/):** Hosting a database for local 
     development
 
