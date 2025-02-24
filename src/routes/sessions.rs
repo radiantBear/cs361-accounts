@@ -25,7 +25,7 @@ pub mod response {
 
     #[derive(Serialize)]
     pub struct Get {
-        pub user_id: i32
+        pub id: i32
     }
 
     #[derive(Serialize)]
@@ -61,7 +61,7 @@ pub async fn get(Path(params): Path<request::Get>) -> Response {
     (
         StatusCode::OK,
         Json(response::Get {
-            user_id: user.user_id
+            id: user.user_id
         })
     ).into_response()
 }
