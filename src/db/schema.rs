@@ -19,8 +19,8 @@ diesel::table! {
 }
 
 diesel::table! {
-    csrf_tokens (csrf_token_id) {
-        csrf_token_id -> Integer,
+    nonces (nonce_id) {
+        nonce_id -> Integer,
         uuid -> Char,
         date_created -> Datetime
     }

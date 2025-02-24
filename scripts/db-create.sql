@@ -19,8 +19,8 @@ CREATE TABLE sessions (
     FOREIGN KEY (`user_id`) REFERENCES `users`(`user_id`) ON DELETE CASCADE
 );
 
-CREATE TABLE csrf_tokens (
-    `csrf_token_id` INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+CREATE TABLE nonces (
+    `nonce_id` INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
     `uuid` CHAR(128) NOT NULL UNIQUE,
     `date_created` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

@@ -1,76 +1,25 @@
-use axum::{ extract::Path, http::StatusCode, Json, response::{IntoResponse, Response} };
+use axum::{ http::StatusCode, Json, response::{IntoResponse, Response} };
 
-use crate::db;
-
-
-pub mod request {
-    use serde::Deserialize;
-
-    #[derive(Deserialize)]
-    pub struct Get {
-        pub token: String
-    }
-}
+use crate::utils::rand;
 
 
 pub mod response {
     use serde::Serialize;
 
     #[derive(Serialize)]
-    pub struct Post {
+    pub struct Get {
         pub token: String
     }
 }
 
 
-pub async fn post() -> Response {
-    let Ok(connection) = &mut db::connection::establish() else {
-        return (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            "Unable to connect to database"
-        ).into_response();
-    };
-
-    // Check if user exists
-    let Ok(csrf_token) = db::queries::csrf_tokens::create_csrf_token(connection) else {
-        return (
-            StatusCode::INTERNAL_SERVER_ERROR, 
-            "Unable to create CSRF token"
-        ).into_response()
-    };
+pub async fn get() -> Response {
+    let uuid = rand::generate_alphanumeric(128);
 
     (
         StatusCode::OK,
-        Json(response::Post {
-            token: csrf_token.uuid
+        Json(response::Get {
+            token: uuid
         })
     ).into_response()
-}
-
-
-pub async fn delete(Path(params): Path<request::Get>) -> Response {
-    let Ok(connection) = &mut db::connection::establish() else {
-        return (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            "Unable to connect to database"
-        ).into_response();
-    };
-
-    // Check if user exists
-    let Ok(valid_token) = db::queries::csrf_tokens::validate_csrf_token(connection, params.token) else {
-        return (
-            StatusCode::INTERNAL_SERVER_ERROR, 
-            "Unable to check CSRF token"
-        ).into_response()
-    };
-
-    if valid_token {
-        StatusCode::OK.into_response()
-    }
-    else {
-        (
-            StatusCode::NOT_FOUND,
-            "Invalid CSRF token"
-        ).into_response()
-    }
 }

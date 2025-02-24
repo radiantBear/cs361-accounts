@@ -1,31 +1,26 @@
 pub mod csrf_tokens;
+pub mod nonces;
 pub mod sessions;
 pub mod users;
 
 
 use axum::{Router, middleware, routing::{get, post, delete}};
 
-use crate::middleware::{validate_api_key, validate_csrf_token};
+use crate::middleware::validate_api_key;
 
 
 pub fn app() -> Router {
     Router::new()
-        .nest("/users", 
-            Router::new()
-            .route("/", post(users::post))
-            .route("/{user_id}", delete(users::delete))
-            .layer(middleware::from_fn(validate_csrf_token))
-        )
+        .route("/users", post(users::post))
+        .route("/users/{user_id}", delete(users::delete))
         
-        .nest("/sessions",
-            Router::new()
-            .route("/", post(sessions::post))
-            .layer(middleware::from_fn(validate_csrf_token))
-        )
+        .route("/sessions", post(sessions::post))
         .route("/sessions/{uuid}",     get(sessions::get))
         
-        .route("/csrf_tokens",         post(csrf_tokens::post))
-        .route("/csrf_tokens/{token}", delete(csrf_tokens::delete))
+        .route("/csrf_tokens",         post(csrf_tokens::get))
+
+        .route("/nonces", post(nonces::post))
+        .route("/nonces/{nonce}", delete(nonces::delete))
         
         .layer(middleware::from_fn(validate_api_key))
 }

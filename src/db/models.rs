@@ -29,11 +29,11 @@ pub struct Session {
 }
 
 #[derive(Queryable, Selectable, Identifiable)]
-#[diesel(primary_key(csrf_token_id))]
-#[diesel(table_name = schema::csrf_tokens)]
+#[diesel(primary_key(nonce_id))]
+#[diesel(table_name = schema::nonces)]
 #[diesel(check_for_backend(diesel::mysql::Mysql))]
-pub struct CsrfToken {
-    pub csrf_token_id: i32,
+pub struct Nonce {
+    pub nonce_id: i32,
     pub uuid: String,
     pub date_created: chrono::NaiveDateTime
 }
@@ -56,8 +56,8 @@ pub struct NewSession {
 }
 
 #[derive(Insertable)]
-#[diesel(table_name = schema::csrf_tokens)]
+#[diesel(table_name = schema::nonces)]
 #[diesel(check_for_backend(diesel::mysql::Mysql))]
-pub struct NewCsrfToken {
+pub struct NewNonce {
     pub uuid: String
 }
