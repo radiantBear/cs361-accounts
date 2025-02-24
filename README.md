@@ -40,7 +40,8 @@ DATABASE_URL={database_url}
 ### Local Development
 1. If the Docker container for the database is stopped, start it with 
     `docker start accounts`.
-1. Start the project with `cargo run --release`.
+1. Start the project with `cargo run --release`. This will start the microservice server 
+    on port 3000.
 
 ## Usage
 All API endpoints are [documented](/docs/api_schema.yaml) using the OpenAPI v3.0 format. 
